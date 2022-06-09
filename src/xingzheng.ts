@@ -1,5 +1,5 @@
-const Crawler = require("crawler");
-const fs = require("fs");
+import Crawler from "crawler";
+import { CsvSaver } from "./utils/CsvSaver";
 
 function getBaseUrl(urlStr = "") {
     const url = new URL(urlStr);
@@ -7,9 +7,16 @@ function getBaseUrl(urlStr = "") {
     return url.origin + basePath;
 }
 
+interface Row {
+    uid: string
+    name: string
+    parent_uid: string
+    level: string
+    urban_rural_classify: string
+}
 
-let total = 1;
-let handled = 0;
+const cvsSaver = new CsvSaver<Row>("./output/xiaoxue1.csv")
+
 
 const c = new Crawler({
     maxConnections: 2,
@@ -18,8 +25,6 @@ const c = new Crawler({
         if (error) {
             console.log(error);
         } else {
-            handled += 1;
-
             switch (res.options.level) {
                 case "top":
                     handleTop(res);
@@ -36,9 +41,6 @@ const c = new Crawler({
                 case 'town':
                     handleTown(res);
                     break;
-                case 'village':
-                    handleVillage(res);
-                    break;
                 default:
                     console.warn("未知type");
             }
@@ -48,17 +50,12 @@ const c = new Crawler({
 });
 
 
-const file = fs.openSync("quhua.csv","w");
-fs.writeFileSync(file, "uid,name,parent_uid,level,urban_rural_classify\n", {flag: 'a'});
-
 // 将一段HTML代码加入请求队列，即不通过抓取，直接交由回调函数处理（可用于单元测试）
 c.queue([{
     uri: 'http://www.stats.gov.cn/tjsj/tjbz/tjyqhdmhcxhfdm/2021/index.html',
     level: "top"
 }]);
 
-// c.queue("http://www.stats.gov.cn/tjsj/tjbz/tjyqhdmhcxhfdm/2021/index.html");
-// c.queue("http://www.baidu.com");
 
 function handleTop({ request, $ }) {
     const baseURL = getBaseUrl(request.href);
@@ -72,17 +69,17 @@ function handleTop({ request, $ }) {
             name: name,
             level: "province",
             uid: code,
-            parent_uid: "000000000000"
+            parent_uid: "000000000000",
+            urban_rural_classify: ""
         };
 
-        saveData(data);
+        cvsSaver.saveRow(data)
 
         c.queue({
             level: "province",
             uri: baseURL + nextHref,
             parent_uid: code,
         });
-        total += 1;
     });
 }
 
@@ -108,16 +105,17 @@ function handleProvince({ request, $, options }) {
             level: "city",
             uid: code,
             parent_uid: options.parent_uid,
+            urban_rural_classify: ''
         };
 
-        saveData(data);
+        cvsSaver.saveRow(data)
+
 
         c.queue({
             level: "city",
             uri: baseURL + nextHref,
             parent_uid: code,
         });
-        total += 1;
     });
 }
 
@@ -133,7 +131,6 @@ function handleCity({ request, $, options }) {
             console.log($(el).html());
             console.log(options.uri);
             throw new Error();
-            return;
         }
 
 
@@ -148,9 +145,11 @@ function handleCity({ request, $, options }) {
             level: "county",
             uid: code,
             parent_uid: options.parent_uid,
+            urban_rural_classify: ''
+
         };
 
-        saveData(data);
+        cvsSaver.saveRow(data)
 
         if (nextHref) {
 
@@ -159,7 +158,6 @@ function handleCity({ request, $, options }) {
                 uri: baseURL + nextHref,
                 parent_uid: code,
             });
-            total += 1;
         }
 
     });
@@ -187,16 +185,17 @@ function handleCounty({ request, $, options }) {
             level: "town",
             uid: code,
             parent_uid: options.parent_uid,
+            urban_rural_classify: ''
+
         };
 
-        saveData(data);
+        cvsSaver.saveRow(data)
         if (nextHref) {
             c.queue({
                 level: "town",
                 uri: baseURL + nextHref,
                 parent_uid: code,
             });
-            total += 1;
         }
     });
 }
@@ -223,13 +222,6 @@ function handleTown({ request, $, options }) {
             urban_rural_classify: classify,
         };
 
-        saveData(data);
+        cvsSaver.saveRow(data)
     });
-}
-
-
-function saveData(data) {
-    console.log(`${handled}/${total}`);
-
-    fs.writeFileSync(file, `${data.uid},${data.name},${data.parent_uid},${data.level},${data.urban_rural_classify || ''}\n`, {flag: 'a'});
 }

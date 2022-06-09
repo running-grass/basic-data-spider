@@ -10,7 +10,7 @@ interface School {
 }
 
 
-const cvsSaver = new CsvSaver<School>("./output/xiaoxue1.csv")
+const cvsSaver = new CsvSaver<School>("./output/quhua.csv")
 
 
 const c = new Crawler({
