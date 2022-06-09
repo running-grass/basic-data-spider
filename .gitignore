@@ -1,3 +1,4 @@
 node_modules
-quhua.csv
-*.output.*
+.DS_Store
+out
+dist
