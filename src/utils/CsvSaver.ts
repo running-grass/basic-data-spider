@@ -10,7 +10,7 @@ export class CsvSaver<T extends Object> {
 
   private hasWriteHead = false;
 
-  private headKeys: string[] = null;
+  private headKeys: string[] = [];
 
   constructor(filepath) {
     this.filepath = filepath;
@@ -38,7 +38,7 @@ export class CsvSaver<T extends Object> {
   private getRowString(data: T) {
     const ks = this.getKeys(data);
 
-    const arr = [];
+    const arr : string[] = [];
 
     ks.forEach(k => {
       arr.push(data[k] ?? '');
@@ -48,7 +48,7 @@ export class CsvSaver<T extends Object> {
   }
 
   private getKeys(data?: T) {
-    if (this.headKeys) {
+    if (this.headKeys.length) {
       return this.headKeys;
     }
 

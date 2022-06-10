@@ -6,6 +6,8 @@
     "rootDir": "./src",
     "sourceMap": true,
     "moduleResolution": "Node",
+    "strictNullChecks": true,
+    "strictFunctionTypes": true,
     "esModuleInterop": true
   }
 }
