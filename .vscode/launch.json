@@ -5,32 +5,9 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "type": "",
-            "request": "launch",
-            "name": "Launch Deno",
-            "program": "${file}",
-            "cwd": "${workspaceFolder}",
-            "runtimeExecutable": "deno",
-            "runtimeArgs": [
-                "run",
-                "--inspect-brk=127.0.0.1:9229",
-                "--allow-all"
-            ],
-            "attachSimplePort": 9229
-        },
-        {
             "type": "node",
             "request": "launch",
-            "name": "启动程序",
-            "skipFiles": [
-                "<node_internals>/**"
-            ],
-            "program": "${file}"
-        },
-        {
-            "type": "node",
-            "request": "launch",
-            "name": "调试ts",
+            "name": "调试小学爬虫",
             "skipFiles": [
                 "<node_internals>/**"
             ],
